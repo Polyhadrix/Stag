@@ -1,0 +1,644 @@
+classdef stagVer2 < matlab.apps.AppBase
+
+    % Properties that correspond to app components
+    properties (Access = public)
+        UIFigure                    matlab.ui.Figure
+        GridLayout                  matlab.ui.container.GridLayout
+        outputPanel                 matlab.ui.container.Panel
+        GridLayout5                 matlab.ui.container.GridLayout
+        ErrorLabel                  matlab.ui.control.Label
+        Panel                       matlab.ui.container.Panel
+        GridLayout6                 matlab.ui.container.GridLayout
+        GridLayout9                 matlab.ui.container.GridLayout
+        GridLayout8                 matlab.ui.container.GridLayout
+        SaveAsButton                matlab.ui.control.Button
+        GridLayout7                 matlab.ui.container.GridLayout
+        ResetButton                 matlab.ui.control.Button
+        Label_4                     matlab.ui.control.Label
+        UIAxes                      matlab.ui.control.UIAxes
+        TabGroup                    matlab.ui.container.TabGroup
+        EncodeTab                   matlab.ui.container.Tab
+        GridLayout3                 matlab.ui.container.GridLayout
+        EncodeButton                matlab.ui.control.Button
+        SecretmessageLabel          matlab.ui.control.Label
+        EditField                   matlab.ui.control.EditField
+        TypeyoursecretmessageLabel  matlab.ui.control.Label
+        ChooseFileButton            matlab.ui.control.Button
+        filenameLabel               matlab.ui.control.Label
+        SelectedFileLabel           matlab.ui.control.Label
+        ChooseasoundfiletocoverthesecretmessagewithLabel  matlab.ui.control.Label
+        DecodeTab                   matlab.ui.container.Tab
+        GridLayout4                 matlab.ui.container.GridLayout
+        ThespectrogrammightnotplotimmediatelyPleasewaitLabel  matlab.ui.control.Label
+        ChoosetheencodedsoundfileyouwanttodecodeLabel  matlab.ui.control.Label
+        SelectedFileLabel_2         matlab.ui.control.Label
+        filenameLabel_2             matlab.ui.control.Label
+        ChooseFileButton_2          matlab.ui.control.Button
+        DecodeButton                matlab.ui.control.Button
+        DoyouwishtoencodeordecodeafilePanel  matlab.ui.container.Panel
+        GridLayout2                 matlab.ui.container.GridLayout
+        Switch                      matlab.ui.control.Switch
+    end
+
+    
+    properties (Access = public)
+        coverAudioPathName % Description
+    end
+    
+    properties (Access = public)
+        graphFull = false; % Description
+    end
+    
+    properties (Access = public)
+        encodedAudio % Description
+    end
+    
+
+    % Callbacks that handle component events
+    methods (Access = private)
+
+        % Button pushed function: DecodeButton
+        function DecodeButtonPushed(app, event)
+%app.DecodeButton.Enable = "off";
+            
+ax = app.UIAxes;
+Fs = 44100;
+
+app.ThespectrogrammightnotplotimmediatelyPleasewaitLabel.Visible = true;
+drawnow;
+
+fid = fopen(app.coverAudioPathName);
+[y,Fs] = audioread(app.coverAudioPathName);
+fclose(fid);
+y_mono_L = y(:,1);
+y_mono_R = y(:,2);
+N = length(y_mono_L);
+t = (0:N-1)/Fs;
+
+ax.CLim = [-20 -18];
+[S,F,T] = pspectrum(y_mono_L,Fs,'spectrogram', ...
+    'FrequencyLimits',[18900 20100],'TimeResolution',0.05,'Leakage',0.001);
+imagesc(app.UIAxes, T, flipud(F), rot90(log(abs(S')))); %plot the log spectrum
+set(app.UIAxes,'YDir', 'normal'); % flip the Y Axis
+ax.Interactions = [zoomInteraction('Dimensions','x') panInteraction('Dimensions','x')];
+ax.Toolbar.Visible = 'off';
+
+app.outputPanel.Visible = true;
+app.graphFull = true;
+        end
+
+        % Value changed function: Switch
+        function SwitchValueChanged(app, event)
+            value = app.Switch.Value;
+            if(value == "< Decode")
+                app.TabGroup.SelectedTab = app.DecodeTab;
+                app.outputPanel.Title = '3): View the secret message.';
+                app.SaveAsButton.Visible = false;
+                app.coverAudioPathName = "";
+                app.filenameLabel.Text = "";
+                app.filenameLabel_2.Text = "";
+                app.EditField.Value = "";
+                if app.graphFull == true
+                        app.UIAxes.Children.XData = [];
+                        app.UIAxes.Children.YData = [];
+                        app.outputPanel.Visible = false;
+                        app.ThespectrogrammightnotplotimmediatelyPleasewaitLabel.Visible = false;
+                        app.ErrorLabel.Text = "";
+                end
+                app.outputPanel.Visible = false;
+                app.ThespectrogrammightnotplotimmediatelyPleasewaitLabel.Visible = false;
+                app.ErrorLabel.Text = "";
+                app.graphFull = false;
+            end
+            if(value == "Encode >")
+                app.TabGroup.SelectedTab = app.EncodeTab;
+                app.outputPanel.Title = '4): Save the encoded file to your computer.';
+                app.SaveAsButton.Visible = true;
+                app.coverAudioPathName = "";
+                app.filenameLabel.Text = "";
+                app.filenameLabel_2.Text = "";
+                app.EditField.Value = "";
+                if app.graphFull == true
+                        app.UIAxes.Children.XData = [];
+                        app.UIAxes.Children.YData = [];
+                        app.outputPanel.Visible = false;
+                        app.ThespectrogrammightnotplotimmediatelyPleasewaitLabel.Visible = false;
+                        app.ErrorLabel.Text = "";
+                end
+                app.outputPanel.Visible = false;
+                app.ThespectrogrammightnotplotimmediatelyPleasewaitLabel.Visible = false;
+                app.ErrorLabel.Text = "";
+                app.graphFull = false;
+            end
+        end
+
+        % Button down function: EncodeTab
+        function EncodeTabButtonDown(app, event)
+            if (app.Switch.Value == "< Decode")
+                app.Switch.Value = "Encode >";
+                app.outputPanel.Title = '4): Save the encoded file to your computer.';
+                app.SaveAsButton.Visible = true;
+                app.coverAudioPathName = "";
+                app.filenameLabel.Text = "";
+                app.filenameLabel_2.Text = "";
+                app.EditField.Value = "";
+                    if app.graphFull == true
+                        app.UIAxes.Children.XData = [];
+                        app.UIAxes.Children.YData = [];
+                        app.outputPanel.Visible = false;
+                        app.ThespectrogrammightnotplotimmediatelyPleasewaitLabel.Visible = false;
+                        app.ErrorLabel.Text = "";
+                    end
+                app.outputPanel.Visible = false;
+                app.ThespectrogrammightnotplotimmediatelyPleasewaitLabel.Visible = false;
+                app.ErrorLabel.Text = "";
+                app.graphFull = false;
+            end
+        end
+
+        % Button down function: DecodeTab
+        function DecodeTabButtonDown(app, event)
+            if (app.Switch.Value == "Encode >")
+                app.Switch.Value = "< Decode";
+                app.outputPanel.Title = '3): View the secret message.';
+                app.SaveAsButton.Visible = false;
+                app.coverAudioPathName = "";
+                app.filenameLabel.Text = "";
+                app.filenameLabel_2.Text = "";
+                app.EditField.Value = "";
+                    if app.graphFull == true
+                        app.UIAxes.Children.XData = [];
+                        app.UIAxes.Children.YData = [];
+                        app.outputPanel.Visible = false;
+                        app.ThespectrogrammightnotplotimmediatelyPleasewaitLabel.Visible = false;
+                        app.ErrorLabel.Text = "";
+                    end
+                app.outputPanel.Visible = false;
+                app.ThespectrogrammightnotplotimmediatelyPleasewaitLabel.Visible = false;
+                app.ErrorLabel.Text = "";
+                app.graphFull = false;
+            end
+        end
+
+        % Button pushed function: ChooseFileButton
+        function ChooseFileButtonPushed(app, event)
+            [filename, pathname] = uigetfile ({'*.wav'}, 'Select File');
+                if (~ischar(filename))
+                    return;    %user cancel
+                end
+            app.coverAudioPathName = fullfile(pathname, filename);
+            app.filenameLabel.Text = filename;
+            drawnow;
+            figure(app.UIFigure)
+        end
+
+        % Button pushed function: EncodeButton
+        function EncodeButtonPushed(app, event)
+app.EncodeButton.Enable = 'off';
+drawnow;
+            
+ax = app.UIAxes;
+Fs = 44100;
+
+messageText = app.EditField.Value;
+[s,Fs] = audioread('letter_S_3.wav');
+s = s(:,1);
+    try
+        [s,Fs] = audioread(strcat('LetterTemplates/letter_', messageText(1), '_3.wav'));
+        s = s(:,1);
+        for i = 2:length(messageText)
+                if (messageText(i) == ' ')
+                    x1 = zeros(22050);
+                    x1 = x1(:,1);
+                    s = [s;x1];
+                    s = s(:,1);
+                    continue;
+                end
+            [x1,Fs] = audioread(strcat('letter_',messageText(i), '_3.wav'));
+            x1 = x1(:,1);
+            s = [s;x1];
+            s = s(:,1);
+        end
+        app.SaveAsButton.Visible = true;
+        %app.SaveAsButton.Enable = 'on';
+    catch
+        app.ErrorLabel.Text = "ERROR. Text must be capital alphanumeric.";
+        app.EditField.Value = "";
+        app.SaveAsButton.Visible = false;
+        %app.SaveAsButton.Enable = 'off';
+    end
+
+fid = fopen(app.coverAudioPathName);
+[y,Fs] = audioread(app.coverAudioPathName);
+fclose(fid);
+
+y_mono_L = y(:,1);
+y_mono_R = y(:,2);
+N = length(y_mono_L);
+t = (0:N-1)/Fs;
+s_paddedl = padarray(s,length(y_mono_L)-length(s),0,'post');
+s_paddedr = padarray(s,length(y_mono_R)-length(s),0,'post');
+z = s_paddedl + y_mono_L;
+z1 = s_paddedr + y_mono_R;
+
+trimmed = z(1:length(s));
+t_trimmed = t(1:length(trimmed));
+
+ax.CLim = [-20 -18];
+[S,F,T] = pspectrum(trimmed,Fs,'spectrogram', ...
+    'FrequencyLimits',[18900 20100],'TimeResolution',0.05,'Leakage',0.001);
+imagesc(app.UIAxes, T, flipud(F), rot90(log(abs(S')))); %plot the log spectrum
+set(app.UIAxes,'YDir', 'normal'); % flip the Y Axis
+ax.Interactions = [zoomInteraction('Dimensions','x') panInteraction('Dimensions','x')];
+ax.Toolbar.Visible = 'off';
+stereo_mtx = [z(:), z1(:)];
+
+app.encodedAudio = stereo_mtx;
+app.EncodeButton.Enable = 'on';
+drawnow;
+app.outputPanel.Visible = true;
+app.graphFull = true;
+        end
+
+        % Button pushed function: ResetButton
+        function ResetButtonPushed(app, event)
+            app.coverAudioPathName = "";
+            app.filenameLabel.Text = "";
+            app.filenameLabel_2.Text = "";
+            app.EditField.Value = "";
+                if app.graphFull == true
+                    app.UIAxes.Children.XData = [];
+                    app.UIAxes.Children.YData = [];
+                    app.outputPanel.Visible = false;
+                    app.ThespectrogrammightnotplotimmediatelyPleasewaitLabel.Visible = false;
+                    app.Switch.Value = "Encode >";
+                    app.outputPanel.Title = '4): Save the encoded file to your computer.';
+                    app.TabGroup.SelectedTab = app.EncodeTab;
+                    app.ErrorLabel.Text = "";
+                end
+            app.outputPanel.Visible = false;
+            app.ThespectrogrammightnotplotimmediatelyPleasewaitLabel.Visible = false;
+            app.Switch.Value = "Encode >";
+            app.outputPanel.Title = '4): Save the encoded file to your computer.';
+            app.TabGroup.SelectedTab = app.EncodeTab;
+            app.ErrorLabel.Text = "";
+            app.graphFull = false;
+        end
+
+        % Button pushed function: SaveAsButton
+        function SaveAsButtonPushed(app, event)
+            [file, folder] = uiputfile('*.wav');
+                if ~isequal(file, 0)  % User did not press Cancel:
+                    audiowrite(fullfile(folder, file), app.encodedAudio, 44100);
+                end
+            drawnow;
+            figure(app.UIFigure)
+        end
+
+        % Button pushed function: ChooseFileButton_2
+        function ChooseFileButton_2Pushed(app, event)
+            [filename, pathname] = uigetfile ({'*.wav'}, 'Select File');
+                if (~ischar(filename))
+                    return;    %user cancel
+                end
+            app.coverAudioPathName = fullfile(pathname, filename);
+            app.filenameLabel_2.Text = filename;
+            drawnow;
+            figure(app.UIFigure)
+        end
+
+        % Callback function
+        function PlaysoundButtonValueChanged(app, event)
+            
+        end
+    end
+
+    % Component initialization
+    methods (Access = private)
+
+        % Create UIFigure and components
+        function createComponents(app)
+
+            % Create UIFigure and hide until all components are created
+            app.UIFigure = uifigure('Visible', 'off');
+            app.UIFigure.Position = [250 400 1523 493];
+            app.UIFigure.Name = 'MATLAB App';
+
+            % Create GridLayout
+            app.GridLayout = uigridlayout(app.UIFigure);
+            app.GridLayout.ColumnWidth = {'1x', '1x', '1x'};
+            app.GridLayout.RowHeight = {'1x', '1x', '1x'};
+
+            % Create DoyouwishtoencodeordecodeafilePanel
+            app.DoyouwishtoencodeordecodeafilePanel = uipanel(app.GridLayout);
+            app.DoyouwishtoencodeordecodeafilePanel.Title = '1): Do you wish to encode or decode a file?';
+            app.DoyouwishtoencodeordecodeafilePanel.Layout.Row = 1;
+            app.DoyouwishtoencodeordecodeafilePanel.Layout.Column = 1;
+            app.DoyouwishtoencodeordecodeafilePanel.FontSize = 24;
+
+            % Create GridLayout2
+            app.GridLayout2 = uigridlayout(app.DoyouwishtoencodeordecodeafilePanel);
+            app.GridLayout2.ColumnWidth = {'0x', '1x'};
+            app.GridLayout2.RowHeight = {'1x', '1.5x', '1x'};
+
+            % Create Switch
+            app.Switch = uiswitch(app.GridLayout2, 'slider');
+            app.Switch.Items = {'Encode >', '< Decode'};
+            app.Switch.ValueChangedFcn = createCallbackFcn(app, @SwitchValueChanged, true);
+            app.Switch.FontSize = 24;
+            app.Switch.Layout.Row = 2;
+            app.Switch.Layout.Column = 2;
+            app.Switch.Value = 'Encode >';
+
+            % Create TabGroup
+            app.TabGroup = uitabgroup(app.GridLayout);
+            app.TabGroup.TabLocation = 'bottom';
+            app.TabGroup.Layout.Row = [2 3];
+            app.TabGroup.Layout.Column = 1;
+
+            % Create EncodeTab
+            app.EncodeTab = uitab(app.TabGroup);
+            app.EncodeTab.Title = 'Encode';
+            app.EncodeTab.ButtonDownFcn = createCallbackFcn(app, @EncodeTabButtonDown, true);
+
+            % Create GridLayout3
+            app.GridLayout3 = uigridlayout(app.EncodeTab);
+            app.GridLayout3.ColumnWidth = {'1x', '1x', '1x'};
+            app.GridLayout3.RowHeight = {'1.5x', '1x', '1x', '0.75x', '1x'};
+
+            % Create ChooseasoundfiletocoverthesecretmessagewithLabel
+            app.ChooseasoundfiletocoverthesecretmessagewithLabel = uilabel(app.GridLayout3);
+            app.ChooseasoundfiletocoverthesecretmessagewithLabel.WordWrap = 'on';
+            app.ChooseasoundfiletocoverthesecretmessagewithLabel.FontSize = 24;
+            app.ChooseasoundfiletocoverthesecretmessagewithLabel.Layout.Row = 1;
+            app.ChooseasoundfiletocoverthesecretmessagewithLabel.Layout.Column = [1 3];
+            app.ChooseasoundfiletocoverthesecretmessagewithLabel.Text = '2): Choose a sound file to cover the secret message with.';
+
+            % Create SelectedFileLabel
+            app.SelectedFileLabel = uilabel(app.GridLayout3);
+            app.SelectedFileLabel.HorizontalAlignment = 'right';
+            app.SelectedFileLabel.FontSize = 18;
+            app.SelectedFileLabel.FontWeight = 'bold';
+            app.SelectedFileLabel.Layout.Row = 2;
+            app.SelectedFileLabel.Layout.Column = 2;
+            app.SelectedFileLabel.Text = 'Selected File:';
+
+            % Create filenameLabel
+            app.filenameLabel = uilabel(app.GridLayout3);
+            app.filenameLabel.BackgroundColor = [1 1 1];
+            app.filenameLabel.Layout.Row = 2;
+            app.filenameLabel.Layout.Column = 3;
+            app.filenameLabel.Text = '';
+
+            % Create ChooseFileButton
+            app.ChooseFileButton = uibutton(app.GridLayout3, 'push');
+            app.ChooseFileButton.ButtonPushedFcn = createCallbackFcn(app, @ChooseFileButtonPushed, true);
+            app.ChooseFileButton.BackgroundColor = [0.902 0.902 0.902];
+            app.ChooseFileButton.FontSize = 18;
+            app.ChooseFileButton.FontWeight = 'bold';
+            app.ChooseFileButton.FontAngle = 'italic';
+            app.ChooseFileButton.Layout.Row = 2;
+            app.ChooseFileButton.Layout.Column = 1;
+            app.ChooseFileButton.Text = 'Choose File...';
+
+            % Create TypeyoursecretmessageLabel
+            app.TypeyoursecretmessageLabel = uilabel(app.GridLayout3);
+            app.TypeyoursecretmessageLabel.WordWrap = 'on';
+            app.TypeyoursecretmessageLabel.FontSize = 24;
+            app.TypeyoursecretmessageLabel.Layout.Row = 3;
+            app.TypeyoursecretmessageLabel.Layout.Column = [1 3];
+            app.TypeyoursecretmessageLabel.Text = '3): Type your secret message.';
+
+            % Create EditField
+            app.EditField = uieditfield(app.GridLayout3, 'text');
+            app.EditField.Placeholder = '(must be alphanumeric)';
+            app.EditField.Layout.Row = 4;
+            app.EditField.Layout.Column = [2 3];
+
+            % Create SecretmessageLabel
+            app.SecretmessageLabel = uilabel(app.GridLayout3);
+            app.SecretmessageLabel.FontSize = 18;
+            app.SecretmessageLabel.Layout.Row = 4;
+            app.SecretmessageLabel.Layout.Column = 1;
+            app.SecretmessageLabel.Text = 'Secret message:';
+
+            % Create EncodeButton
+            app.EncodeButton = uibutton(app.GridLayout3, 'push');
+            app.EncodeButton.ButtonPushedFcn = createCallbackFcn(app, @EncodeButtonPushed, true);
+            app.EncodeButton.BusyAction = 'cancel';
+            app.EncodeButton.Interruptible = 'off';
+            app.EncodeButton.BackgroundColor = [0.4667 0.6745 0.1882];
+            app.EncodeButton.FontSize = 24;
+            app.EncodeButton.FontWeight = 'bold';
+            app.EncodeButton.FontColor = [1 1 1];
+            app.EncodeButton.Layout.Row = 5;
+            app.EncodeButton.Layout.Column = 2;
+            app.EncodeButton.Text = 'Encode';
+
+            % Create DecodeTab
+            app.DecodeTab = uitab(app.TabGroup);
+            app.DecodeTab.Title = 'Decode';
+            app.DecodeTab.BackgroundColor = [1 1 1];
+            app.DecodeTab.ButtonDownFcn = createCallbackFcn(app, @DecodeTabButtonDown, true);
+
+            % Create GridLayout4
+            app.GridLayout4 = uigridlayout(app.DecodeTab);
+            app.GridLayout4.ColumnWidth = {'2x', '2x', '2x'};
+            app.GridLayout4.RowHeight = {'3x', '2x', '2x', '2x', '2x'};
+            app.GridLayout4.RowSpacing = 9.83333333333333;
+            app.GridLayout4.Padding = [10 9.83333333333333 10 9.83333333333333];
+            app.GridLayout4.BackgroundColor = [0.9412 0.9412 0.9412];
+
+            % Create DecodeButton
+            app.DecodeButton = uibutton(app.GridLayout4, 'push');
+            app.DecodeButton.ButtonPushedFcn = createCallbackFcn(app, @DecodeButtonPushed, true);
+            app.DecodeButton.BusyAction = 'cancel';
+            app.DecodeButton.Interruptible = 'off';
+            app.DecodeButton.BackgroundColor = [0 0.4471 0.7412];
+            app.DecodeButton.FontSize = 24;
+            app.DecodeButton.FontWeight = 'bold';
+            app.DecodeButton.FontColor = [1 1 1];
+            app.DecodeButton.Layout.Row = 5;
+            app.DecodeButton.Layout.Column = 2;
+            app.DecodeButton.Text = 'Decode';
+
+            % Create ChooseFileButton_2
+            app.ChooseFileButton_2 = uibutton(app.GridLayout4, 'push');
+            app.ChooseFileButton_2.ButtonPushedFcn = createCallbackFcn(app, @ChooseFileButton_2Pushed, true);
+            app.ChooseFileButton_2.BackgroundColor = [0.902 0.902 0.902];
+            app.ChooseFileButton_2.FontSize = 18;
+            app.ChooseFileButton_2.FontWeight = 'bold';
+            app.ChooseFileButton_2.FontAngle = 'italic';
+            app.ChooseFileButton_2.Layout.Row = 2;
+            app.ChooseFileButton_2.Layout.Column = 1;
+            app.ChooseFileButton_2.Text = 'Choose File...';
+
+            % Create filenameLabel_2
+            app.filenameLabel_2 = uilabel(app.GridLayout4);
+            app.filenameLabel_2.BackgroundColor = [1 1 1];
+            app.filenameLabel_2.Layout.Row = 2;
+            app.filenameLabel_2.Layout.Column = 3;
+            app.filenameLabel_2.Text = '';
+
+            % Create SelectedFileLabel_2
+            app.SelectedFileLabel_2 = uilabel(app.GridLayout4);
+            app.SelectedFileLabel_2.HorizontalAlignment = 'right';
+            app.SelectedFileLabel_2.FontSize = 18;
+            app.SelectedFileLabel_2.FontWeight = 'bold';
+            app.SelectedFileLabel_2.Layout.Row = 2;
+            app.SelectedFileLabel_2.Layout.Column = 2;
+            app.SelectedFileLabel_2.Text = 'Selected File:';
+
+            % Create ChoosetheencodedsoundfileyouwanttodecodeLabel
+            app.ChoosetheencodedsoundfileyouwanttodecodeLabel = uilabel(app.GridLayout4);
+            app.ChoosetheencodedsoundfileyouwanttodecodeLabel.WordWrap = 'on';
+            app.ChoosetheencodedsoundfileyouwanttodecodeLabel.FontSize = 24;
+            app.ChoosetheencodedsoundfileyouwanttodecodeLabel.Layout.Row = 1;
+            app.ChoosetheencodedsoundfileyouwanttodecodeLabel.Layout.Column = [1 3];
+            app.ChoosetheencodedsoundfileyouwanttodecodeLabel.Text = '2): Choose the encoded sound file you want to decode.';
+
+            % Create ThespectrogrammightnotplotimmediatelyPleasewaitLabel
+            app.ThespectrogrammightnotplotimmediatelyPleasewaitLabel = uilabel(app.GridLayout4);
+            app.ThespectrogrammightnotplotimmediatelyPleasewaitLabel.HorizontalAlignment = 'center';
+            app.ThespectrogrammightnotplotimmediatelyPleasewaitLabel.FontSize = 15;
+            app.ThespectrogrammightnotplotimmediatelyPleasewaitLabel.FontAngle = 'italic';
+            app.ThespectrogrammightnotplotimmediatelyPleasewaitLabel.Visible = 'off';
+            app.ThespectrogrammightnotplotimmediatelyPleasewaitLabel.Layout.Row = 4;
+            app.ThespectrogrammightnotplotimmediatelyPleasewaitLabel.Layout.Column = [1 3];
+            app.ThespectrogrammightnotplotimmediatelyPleasewaitLabel.Text = 'The spectrogram might not plot immediately. Please wait.';
+
+            % Create outputPanel
+            app.outputPanel = uipanel(app.GridLayout);
+            app.outputPanel.Title = '4): Save the encoded file to your computer.';
+            app.outputPanel.Visible = 'off';
+            app.outputPanel.Layout.Row = [1 3];
+            app.outputPanel.Layout.Column = [2 3];
+            app.outputPanel.FontSize = 24;
+
+            % Create GridLayout5
+            app.GridLayout5 = uigridlayout(app.outputPanel);
+            app.GridLayout5.ColumnWidth = {'1x', '1x', '1x', '1x', '1x'};
+            app.GridLayout5.RowHeight = {'0.1x', '0.1x', 150, '0.25x'};
+
+            % Create UIAxes
+            app.UIAxes = uiaxes(app.GridLayout5);
+            title(app.UIAxes, 'Spectrogram of Encoded File')
+            xlabel(app.UIAxes, 'Time')
+            ylabel(app.UIAxes, 'Frequency')
+            app.UIAxes.TickLabelInterpreter = 'none';
+            app.UIAxes.YLim = [18900 20100];
+            app.UIAxes.YLimitMethod = 'tight';
+            app.UIAxes.YTickLabel = {'19k'; '19.5k'; '20k'};
+            app.UIAxes.ZTick = [];
+            app.UIAxes.Layout.Row = 3;
+            app.UIAxes.Layout.Column = [1 5];
+
+            % Create Panel
+            app.Panel = uipanel(app.GridLayout5);
+            app.Panel.Layout.Row = 4;
+            app.Panel.Layout.Column = [1 5];
+
+            % Create GridLayout6
+            app.GridLayout6 = uigridlayout(app.Panel);
+            app.GridLayout6.ColumnWidth = {'1x', '1x', '1x', '1x', '1x'};
+            app.GridLayout6.RowHeight = {'1x', '1.25x'};
+
+            % Create Label_4
+            app.Label_4 = uilabel(app.GridLayout6);
+            app.Label_4.VerticalAlignment = 'top';
+            app.Label_4.WordWrap = 'on';
+            app.Label_4.FontSize = 15;
+            app.Label_4.Layout.Row = 1;
+            app.Label_4.Layout.Column = [1 5];
+            app.Label_4.Text = 'You can drag the graph horizontally to shift the view left and right. Scroll to zoom in/out. If it''s unresponsive, click on the graph once and try again. If you''re having trouble zooming in/out, drag the graph a little bit and try again.';
+
+            % Create GridLayout7
+            app.GridLayout7 = uigridlayout(app.GridLayout6);
+            app.GridLayout7.RowHeight = {'1x'};
+            app.GridLayout7.Layout.Row = 2;
+            app.GridLayout7.Layout.Column = [4 5];
+
+            % Create ResetButton
+            app.ResetButton = uibutton(app.GridLayout7, 'push');
+            app.ResetButton.ButtonPushedFcn = createCallbackFcn(app, @ResetButtonPushed, true);
+            app.ResetButton.BackgroundColor = [0.7294 0 0];
+            app.ResetButton.FontSize = 24;
+            app.ResetButton.FontWeight = 'bold';
+            app.ResetButton.FontColor = [1 1 1];
+            app.ResetButton.Layout.Row = 1;
+            app.ResetButton.Layout.Column = 2;
+            app.ResetButton.Text = 'Reset';
+
+            % Create GridLayout8
+            app.GridLayout8 = uigridlayout(app.GridLayout6);
+            app.GridLayout8.RowHeight = {'1x'};
+            app.GridLayout8.Layout.Row = 2;
+            app.GridLayout8.Layout.Column = [1 2];
+
+            % Create SaveAsButton
+            app.SaveAsButton = uibutton(app.GridLayout8, 'push');
+            app.SaveAsButton.ButtonPushedFcn = createCallbackFcn(app, @SaveAsButtonPushed, true);
+            app.SaveAsButton.BackgroundColor = [0.902 0.902 0.902];
+            app.SaveAsButton.FontSize = 18;
+            app.SaveAsButton.FontWeight = 'bold';
+            app.SaveAsButton.FontAngle = 'italic';
+            app.SaveAsButton.Layout.Row = 1;
+            app.SaveAsButton.Layout.Column = 1;
+            app.SaveAsButton.Text = 'Save As...';
+
+            % Create GridLayout9
+            app.GridLayout9 = uigridlayout(app.GridLayout6);
+            app.GridLayout9.ColumnWidth = {'1x'};
+            app.GridLayout9.RowHeight = {'1x'};
+            app.GridLayout9.Layout.Row = 2;
+            app.GridLayout9.Layout.Column = 3;
+
+            % Create ErrorLabel
+            app.ErrorLabel = uilabel(app.GridLayout5);
+            app.ErrorLabel.FontColor = [0.851 0 0];
+            app.ErrorLabel.Layout.Row = 1;
+            app.ErrorLabel.Layout.Column = [1 5];
+            app.ErrorLabel.Text = '';
+
+            % Show the figure after all components are created
+            app.UIFigure.Visible = 'on';
+        end
+    end
+
+    % App creation and deletion
+    methods (Access = public)
+
+        % Construct app
+        function app = stagVer2
+
+            runningApp = getRunningApp(app);
+
+            % Check for running singleton app
+            if isempty(runningApp)
+
+                % Create UIFigure and components
+                createComponents(app)
+
+                % Register the app with App Designer
+                registerApp(app, app.UIFigure)
+            else
+
+                % Focus the running singleton app
+                figure(runningApp.UIFigure)
+
+                app = runningApp;
+            end
+
+            if nargout == 0
+                clear app
+            end
+        end
+
+        % Code that executes before app deletion
+        function delete(app)
+
+            % Delete UIFigure when app is deleted
+            delete(app.UIFigure)
+        end
+    end
+end
