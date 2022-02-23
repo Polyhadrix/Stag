@@ -19,6 +19,7 @@ classdef stagVer2 < matlab.apps.AppBase
         TabGroup                    matlab.ui.container.TabGroup
         EncodeTab                   matlab.ui.container.Tab
         GridLayout3                 matlab.ui.container.GridLayout
+        encodeErrorLabel            matlab.ui.control.Label
         EncodeButton                matlab.ui.control.Button
         SecretmessageLabel          matlab.ui.control.Label
         EditField                   matlab.ui.control.EditField
@@ -29,6 +30,7 @@ classdef stagVer2 < matlab.apps.AppBase
         ChooseasoundfiletocoverthesecretmessagewithLabel  matlab.ui.control.Label
         DecodeTab                   matlab.ui.container.Tab
         GridLayout4                 matlab.ui.container.GridLayout
+        decodeErrorLabel            matlab.ui.control.Label
         ThespectrogrammightnotplotimmediatelyPleasewaitLabel  matlab.ui.control.Label
         ChoosetheencodedsoundfileyouwanttodecodeLabel  matlab.ui.control.Label
         SelectedFileLabel_2         matlab.ui.control.Label
@@ -60,16 +62,23 @@ classdef stagVer2 < matlab.apps.AppBase
         % Button pushed function: DecodeButton
         function DecodeButtonPushed(app, event)
 %app.DecodeButton.Enable = "off";
-            
+app.decodeErrorLabel.Text = "";
+drawnow;
+
 ax = app.UIAxes;
 Fs = 44100;
 
 app.ThespectrogrammightnotplotimmediatelyPleasewaitLabel.Visible = true;
 drawnow;
-
+try
 fid = fopen(app.coverAudioPathName);
 [y,Fs] = audioread(app.coverAudioPathName);
 fclose(fid);
+catch
+    app.decodeErrorLabel.Text = "ERROR. You must choose a .WAV file to decode.";
+    app.ThespectrogrammightnotplotimmediatelyPleasewaitLabel.Visible = false;
+    return
+end
 y_mono_L = y(:,1);
 y_mono_R = y(:,2);
 N = length(y_mono_L);
@@ -195,13 +204,21 @@ app.graphFull = true;
         % Button pushed function: EncodeButton
         function EncodeButtonPushed(app, event)
 app.EncodeButton.Enable = 'off';
+app.encodeErrorLabel.Text = "";
 drawnow;
             
 ax = app.UIAxes;
 Fs = 44100;
-
+try
 messageText = app.EditField.Value;
-[s,Fs] = audioread('letter_S_3.wav');
+catch
+    app.encodeErrorLabel.Text = "ERROR. Message text field cannot be empty.";
+    app.EditField.Value = "";
+    app.SaveAsButton.Visible = false;
+    app.EncodeButton.Enable = 'on';
+    return
+end
+[s,Fs] = audioread('LetterTemplates/letter_S_3.wav');
 s = s(:,1);
     try
         [s,Fs] = audioread(strcat('LetterTemplates/letter_', messageText(1), '_3.wav'));
@@ -222,15 +239,24 @@ s = s(:,1);
         app.SaveAsButton.Visible = true;
         %app.SaveAsButton.Enable = 'on';
     catch
-        app.ErrorLabel.Text = "ERROR. Text must be capital alphanumeric.";
+        app.encodeErrorLabel.Text = "ERROR. Text must be capital alphanumeric.";
         app.EditField.Value = "";
         app.SaveAsButton.Visible = false;
+        app.EncodeButton.Enable = 'on';
+        return
         %app.SaveAsButton.Enable = 'off';
     end
-
+try
 fid = fopen(app.coverAudioPathName);
 [y,Fs] = audioread(app.coverAudioPathName);
 fclose(fid);
+catch
+    app.encodeErrorLabel.Text = "ERROR. You must choose a .WAV file.";
+    app.EditField.Value = "";
+    app.SaveAsButton.Visible = false;
+    app.EncodeButton.Enable = 'on';
+    return
+end
 
 y_mono_L = y(:,1);
 y_mono_R = y(:,2);
@@ -282,6 +308,7 @@ app.graphFull = true;
             app.outputPanel.Title = '4): Save the encoded file to your computer.';
             app.TabGroup.SelectedTab = app.EncodeTab;
             app.ErrorLabel.Text = "";
+            app.decodeErrorLabel.Text = "";
             app.graphFull = false;
         end
 
@@ -364,7 +391,7 @@ app.graphFull = true;
             % Create GridLayout3
             app.GridLayout3 = uigridlayout(app.EncodeTab);
             app.GridLayout3.ColumnWidth = {'1x', '1x', '1x'};
-            app.GridLayout3.RowHeight = {'1.5x', '1x', '1x', '0.75x', '1x'};
+            app.GridLayout3.RowHeight = {'1.5x', '1x', '1x', '1x', '0.75x', '1x'};
 
             % Create ChooseasoundfiletocoverthesecretmessagewithLabel
             app.ChooseasoundfiletocoverthesecretmessagewithLabel = uilabel(app.GridLayout3);
@@ -405,20 +432,21 @@ app.graphFull = true;
             app.TypeyoursecretmessageLabel = uilabel(app.GridLayout3);
             app.TypeyoursecretmessageLabel.WordWrap = 'on';
             app.TypeyoursecretmessageLabel.FontSize = 24;
-            app.TypeyoursecretmessageLabel.Layout.Row = 3;
+            app.TypeyoursecretmessageLabel.Layout.Row = 4;
             app.TypeyoursecretmessageLabel.Layout.Column = [1 3];
             app.TypeyoursecretmessageLabel.Text = '3): Type your secret message.';
 
             % Create EditField
             app.EditField = uieditfield(app.GridLayout3, 'text');
             app.EditField.Placeholder = '(must be alphanumeric)';
-            app.EditField.Layout.Row = 4;
+            app.EditField.Layout.Row = 5;
             app.EditField.Layout.Column = [2 3];
 
             % Create SecretmessageLabel
             app.SecretmessageLabel = uilabel(app.GridLayout3);
             app.SecretmessageLabel.FontSize = 18;
-            app.SecretmessageLabel.Layout.Row = 4;
+            app.SecretmessageLabel.FontWeight = 'bold';
+            app.SecretmessageLabel.Layout.Row = 5;
             app.SecretmessageLabel.Layout.Column = 1;
             app.SecretmessageLabel.Text = 'Secret message:';
 
@@ -431,9 +459,16 @@ app.graphFull = true;
             app.EncodeButton.FontSize = 24;
             app.EncodeButton.FontWeight = 'bold';
             app.EncodeButton.FontColor = [1 1 1];
-            app.EncodeButton.Layout.Row = 5;
+            app.EncodeButton.Layout.Row = 6;
             app.EncodeButton.Layout.Column = 2;
             app.EncodeButton.Text = 'Encode';
+
+            % Create encodeErrorLabel
+            app.encodeErrorLabel = uilabel(app.GridLayout3);
+            app.encodeErrorLabel.FontColor = [1 0 0];
+            app.encodeErrorLabel.Layout.Row = 3;
+            app.encodeErrorLabel.Layout.Column = [1 3];
+            app.encodeErrorLabel.Text = '';
 
             % Create DecodeTab
             app.DecodeTab = uitab(app.TabGroup);
@@ -506,6 +541,13 @@ app.graphFull = true;
             app.ThespectrogrammightnotplotimmediatelyPleasewaitLabel.Layout.Row = 4;
             app.ThespectrogrammightnotplotimmediatelyPleasewaitLabel.Layout.Column = [1 3];
             app.ThespectrogrammightnotplotimmediatelyPleasewaitLabel.Text = 'The spectrogram might not plot immediately. Please wait.';
+
+            % Create decodeErrorLabel
+            app.decodeErrorLabel = uilabel(app.GridLayout4);
+            app.decodeErrorLabel.FontColor = [1 0 0];
+            app.decodeErrorLabel.Layout.Row = 3;
+            app.decodeErrorLabel.Layout.Column = [1 3];
+            app.decodeErrorLabel.Text = '';
 
             % Create outputPanel
             app.outputPanel = uipanel(app.GridLayout);
