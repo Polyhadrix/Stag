@@ -221,8 +221,23 @@ end
 [s,Fs] = audioread('LetterTemplates/letter_S_3.wav');
 s = s(:,1);
     try
-        [s,Fs] = audioread(strcat('LetterTemplates/letter_', messageText(1), '_3.wav'));
-        s = s(:,1);
+        
+            %latest change -- add common character templates 
+                if(messageText(1) == '.')
+                    [s,Fs] = audioread(strcat('LetterTemplates/letter_._3.wav'));
+                    s = s(:,1);
+                elseif(messageText(1) == ',')
+                    [s,Fs] = audioread(strcat('LetterTemplates/letter_,_3.wav'));
+                    s = s(:,1);
+                elseif(messageText(1) == '?')
+                    [s,Fs] = audioread(strcat('LetterTemplates/letter_question_3.wav'));
+                    s = s(:,1);
+                else
+                    [s,Fs] = audioread(strcat('LetterTemplates/letter_', messageText(1), '_3.wav'));
+                    s = s(:,1);
+                end
+            %end of changes
+
         for i = 2:length(messageText)
                 if (messageText(i) == ' ')
                     x1 = zeros(22050);
@@ -231,10 +246,30 @@ s = s(:,1);
                     s = s(:,1);
                     continue;
                 end
-            [x1,Fs] = audioread(strcat('letter_',messageText(i), '_3.wav'));
-            x1 = x1(:,1);
-            s = [s;x1];
-            s = s(:,1);
+                
+            %latest change -- add common character templates 
+                if(messageText(i) == '.')
+                    [x1,Fs] = audioread(strcat('LetterTemplates/letter_._3.wav'));
+                    x1 = x1(:,1);
+                    s = [s;x1];
+                    s = s(:,1);
+                elseif(messageText(i) == ',')
+                    [x1,Fs] = audioread(strcat('LetterTemplates/letter_,_3.wav'));
+                    x1 = x1(:,1);
+                    s = [s;x1];
+                    s = s(:,1);
+                elseif(messageText(i) == '?')
+                    [x1,Fs] = audioread(strcat('LetterTemplates/letter_question_3.wav'));
+                    x1 = x1(:,1);
+                    s = [s;x1];
+                    s = s(:,1);
+                else
+                    [x1,Fs] = audioread(strcat('LetterTemplates/letter_', messageText(i), '_3.wav'));
+                    x1 = x1(:,1);
+                    s = [s;x1];
+                    s = s(:,1);
+                end
+            %end of changes
         end
         app.SaveAsButton.Visible = true;
         %app.SaveAsButton.Enable = 'on';
@@ -391,7 +426,7 @@ app.graphFull = true;
             % Create GridLayout3
             app.GridLayout3 = uigridlayout(app.EncodeTab);
             app.GridLayout3.ColumnWidth = {'1x', '1x', '1x'};
-            app.GridLayout3.RowHeight = {'1.5x', '1x', '1x', '1x', '0.75x', '1x'};
+            app.GridLayout3.RowHeight = {'1.5x', '1x', '0.5x', '1x', '0.75x', '1x'};
 
             % Create ChooseasoundfiletocoverthesecretmessagewithLabel
             app.ChooseasoundfiletocoverthesecretmessagewithLabel = uilabel(app.GridLayout3);
